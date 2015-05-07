@@ -1,16 +1,17 @@
 require 'rails_helper'
 require 'helpers/session_helper'
+require 'helpers/restaurants_helper_spec'
 require 'helpers/reviews_helper_spec'
 
 feature 'reviewing' do
 
   include SessionHelper
+  include RestaurantHelper
   include ReviewHelper
-
-  before { Restaurant.create name: 'KFC' }
 
   before do
     session_start('test@test.com')
+    create_restaurant('KFC')
   end
 
   scenario 'allows logged in users to leave a review using a form' do
@@ -21,7 +22,7 @@ feature 'reviewing' do
   scenario 'a user cannot leave more than two reviews for each restaurant' do
     leave_review('so so', '3')
     leave_review('so so', '3')
-    expect(page).to have_content('You have already reviewed this restaurant.')
+    expect(page).to have_content('You have already reviewed this restaurant')
   end
 
   scenario 'displays an average rating for all reviews' do

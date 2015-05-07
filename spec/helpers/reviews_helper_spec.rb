@@ -2,7 +2,6 @@ require 'rails_helper'
 
 module ReviewHelper
   def leave_review(thoughts, rating)
-    visit '/restaurants'
     click_link 'Review KFC'
     fill_in 'Thoughts', with: thoughts
     select rating, from: 'Rating'
