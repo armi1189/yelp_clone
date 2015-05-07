@@ -1,4 +1,5 @@
 - if user_signed_in?
+  = "Hello #{current_user.email}"
   = link_to "Sign out", destroy_user_session_path, method: :delete
 - else
   = link_to "Sign in", new_user_session_path
@@ -8,8 +9,9 @@
   - @restaurants.each do |restaurant|
     = link_to restaurant.name, restaurant_path(restaurant)
     - if user_signed_in?
-      = link_to "Edit #{restaurant.name}", edit_restaurant_path(restaurant)
-      = link_to "Delete #{restaurant.name}", restaurant_path(restaurant), method: :delete
+      - if current_user == restaurant.user
+        = link_to "Edit #{restaurant.name}", edit_restaurant_path(restaurant)
+        = link_to "Delete #{restaurant.name}", restaurant_path(restaurant), method: :delete
       = link_to "Review #{restaurant.name}", new_restaurant_review_path(restaurant)
     %h3
       Review for
@@ -22,6 +24,8 @@
             = review.thoughts
             %strong= review.rating
             /5
+            - if current_user == review.user
+              = link_to "Delete review", restaurant_review_path(review, review.id), method: :delete
     - else
       %p No reviews
 - else

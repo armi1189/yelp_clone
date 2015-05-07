@@ -10,6 +10,7 @@
       %li
         = review.thoughts
         %strong= review.rating
-        /5
+        - if current_user == review.user
+          = link_to "Delete review", restaurant_review_path(review, review.id), method: :delete
 - else
   %p No reviews

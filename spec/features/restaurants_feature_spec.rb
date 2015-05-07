@@ -1,6 +1,11 @@
 require 'rails_helper'
+require 'helpers/session_helper'
+require 'helpers/restaurants_helper_spec'
 
 feature 'restaurants' do
+  include SessionHelper
+  include RestaurantHelper
+
   context 'user hasn\'t log in' do
     scenario 'should not display a prompt to add a restaurant' do
       visit '/restaurants'
@@ -11,12 +16,7 @@ feature 'restaurants' do
 
   context 'user has logged in' do
       before do
-        visit '/'
-        click_link 'Sign up'
-        fill_in('Email', with: 'test@example.com')
-        fill_in('Password', with: 'testtest')
-        fill_in('Password confirmation', with: 'testtest')
-        click_button('Sign up')
+        session_start('test@test.com')
       end
 
     context 'no restaurants have been added' do
@@ -29,7 +29,7 @@ feature 'restaurants' do
 
     context 'restaurants have been added' do
       before do
-        Restaurant.create(name: 'KFC')
+        create_restaurant('KFC')
       end
 
       scenario 'display restaurants' do
@@ -41,10 +41,7 @@ feature 'restaurants' do
 
     context 'creating restaurants' do
       scenario 'prompts user to fill out a form, than displays the new restaurant' do
-        visit '/restaurants'
-        click_link 'Add a restaurant'
-        fill_in 'Name', with: 'KFC'
-        click_button 'Create Restaurant'
+        create_restaurant('KFC')
         expect(page).to have_content 'KFC'
         expect(current_path).to eq '/restaurants'
       end
@@ -62,18 +59,21 @@ feature 'restaurants' do
     end
 
     context 'viewing restaurants' do
-      let!(:kfc) { Restaurant.create(name: 'KFC') }
+      before do
+        create_restaurant('KFC')
+      end
 
       scenario 'lets a user view a restaurant' do
         visit '/restaurants'
         click_link 'KFC'
         expect(page).to have_content 'KFC'
-        expect(current_path).to eq "/restaurants/#{kfc.id}"
       end
     end
 
     context 'editing restaurants' do
-      before { Restaurant.create name: 'KFC' }
+      before do
+        create_restaurant('KFC')
+      end
 
       scenario 'let a user edit a restaurant' do
         visit '/restaurants'
@@ -83,16 +83,30 @@ feature 'restaurants' do
         expect(page).to have_content 'Kentucky Fried Chicken'
         expect(current_path).to eq '/restaurants'
       end
+
+      scenario 'user cannot edit a restaurant he hasn\'t created' do
+        click_link('Sign out')
+        session_start('another@test.com')
+        expect(page).not_to have_content('Edit KFC')
+      end
     end
 
     context 'deleting restaurants' do
-      before { Restaurant.create name: 'KFC' }
+      before do
+        create_restaurant('KFC')
+      end
 
       scenario 'removes a restaurant when a user clicks a delete link' do
         visit '/restaurants'
         click_link 'Delete KFC'
         expect(page).not_to have_content 'KFC'
         expect(page).to have_content 'Restaurant deleted successfully'
+      end
+
+      scenario 'user cannot delete a restaurant if he hasn\'t created' do
+        click_link('Sign out')
+        session_start('another@test.com')
+        expect(page).not_to have_content('Delete KFC')
       end
     end
   end
